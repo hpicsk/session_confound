@@ -1,0 +1,226 @@
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{float}
+\usepackage{graphicx}
+
+\input{params}
+
+\renewcommand{\thetable}{S\arabic{table}}
+
+\begin{document}
+
+\section*{Supplementary Material}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Settings of the classifiers and of the fusion training. A random-forest
+setting that neither this table nor the main text gives is the scikit-learn
+default, and a fusion-training setting that neither gives is the CDD study's.}
+\label{tab:settings}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.34\textwidth}>{\raggedright\arraybackslash}p{0.58\textwidth}}
+\toprule
+Setting & Value \\
+\midrule
+\multicolumn{2}{l}{\emph{Timestamp baseline and CDD re-analysis}} \\
+Random forest & \forestTrees{} trees \\
+AI Hub timestamp & the day as a count of calendar days, and the time of day in
+hours \\
+AI Hub farm & coded as an integer within the crop \\
+AI Hub classifiers, a variable that takes a single value or none in a crop & left
+out of that crop's classifiers \\
+AI Hub full-panel classifier, a missing value & at each node of a tree, the row goes
+down the branch that separates the classes better (scikit-learn's handling) \\
+AI Hub rows drawn per crop and seed & \timestampSampleRows{} \\
+AI Hub cross-validation & stratified, \timestampFolds{} folds \\
+AI Hub seeds & \numSeeds{} \\
+AI Hub tuned forests & \tunedTrees{} trees; the number of variables considered at each
+node of a tree, the square root of the number of variables, half of them, or all of them; and
+the minimum number of rows in a leaf, \tunedLeafSizes{}; chosen by accuracy in a
+stratified \tunedInnerFolds{}-fold cross-validation within the training folds \\
+AI Hub sessions of the within-session measurement & those holding at least
+\sessionMinRows{} rows and at least two classes of at least
+\sessionMinClassRows{} rows each; the rows of smaller classes are left out \\
+CDD environment classifier & the mean, minimum, maximum, and first and last
+non-missing values of each value column of the series; a missing value set to the
+median of the training images \\
+CDD test partition (drawn splits) & one of \cddFolds{} folds \\
+CDD seeds, drawn splits & \cddSeeds{} \\
+CDD seeds, the study's split & \cddTheirSeeds{} \\
+CDD forests on the study's split, number of variables considered at each node & the
+square root of the number of variables $p$, or \cddGridFractions{} of $p$, chosen by
+macro-F1 on the study's validation partition for a forest trained on its training
+partition \\
+\midrule
+\multicolumn{2}{l}{\emph{Fusion experiment on the AI Hub dataset}} \\
+Subsample & \subsampleSize{} images \\
+Test partition & one of \fusionFolds{} folds \\
+Image size & \imagePixels{} $\times$ \imagePixels{} pixels \\
+Augmentation and sampling & random transformations of the training images, which
+are drawn in inverse proportion to their class frequency, as in the CDD study's
+code \\
+Environmental branch & the CDD study's LSTM, with \lstmHidden{} hidden units (the size of its internal
+state), followed by two fully connected layers, reading all nine panel variables \\
+Fusion layer & the CDD study's: dropout (inputs set to zero at random during training) on the two
+sets of class scores, which are then concatenated and mapped to the classes by a fully connected layer \\
+Output layers & those of the branch and of the fusion layer, resized to the
+dataset's classes \\
+Panel preprocessing & a missing value set to zero, as in the CDD study's code;
+each variable then scaled to the unit interval by its minimum and maximum over the
+training images \\
+Optimizer & Adam, learning rate \learningRate{} \\
+Learning-rate schedule & cosine annealing with warm restarts every
+\restartEpochs{} epochs: the rate falls along a cosine curve and returns to its
+initial value at each restart \\
+Training budget & \matchedEpochs{} epochs, batches of \matchedBatch{} images, no
+early stopping \\
+Reduced budget & \lowBudgetEpochs{} epochs, batches of \lowBudgetBatch{} images,
+early stopping after \earlyStopPatience{} epochs without improvement \\
+Seeds & \fusionSeeds{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Leak rates (\%) of the two sets of identifiers in the CDD study's
+repository. The first three columns give the share of test images whose environment
+series occurs in training, in training images of the test image's own class, and in
+training and validation together. The last two give the share of test identifiers
+that appear verbatim in training, and in training and validation together. Series
+are matched by their values with the column of reading times dropped, or by their raw
+files.}
+\label{tab:leak}
+\input{generated/supp_leak.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Leak rate and coverage of the \candidateSplits{} candidate splits of the AI
+Hub dataset's whole metadata spreadsheet, each averaged over \candidateFolds{} folds.
+The leak rate is the share of test images whose panel tuple recurs in training. The
+coverage is the share of test images whose combination of crop, plant part, and class
+also occurs in training.}
+\label{tab:candidates}
+\begin{tabular}{lcc}
+\toprule
+Split & Leak rate (\%) & Coverage (\%) \\
+\midrule
+Random & \candidateRandomLeak{} & \candidateRandomCoverage{} \\
+Disjoint by farm & \candidateFarmLeak{} & \candidateFarmCoverage{} \\
+Disjoint by photo date & \candidateDateLeak{} & \candidateDateCoverage{} \\
+Disjoint by farm--photo-date pair & \candidateSessionLeak{} & \candidateSessionCoverage{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{The fusion experiment at the reduced budget of Supplementary
+Table~\ref{tab:settings}: the image-only model's macro-F1 and the gain $\delta$, the
+fusion model's score minus the image-only model's, in macro-F1 and in balanced
+accuracy, and the change of each model's macro-F1 from the reduced budget to the
+CDD study's budget on the in-distribution split, paired within seed. Values are
+means over \fusionSeeds{} random seeds with 95\% confidence intervals.}
+\label{tab:fusion-reduced}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.25\textwidth}ccc}
+\toprule
+ & Image-only macro-F1 & $\delta$, macro-F1 & $\delta$, balanced accuracy \\
+\midrule
+In distribution & $\imageOnlyFone{}$ & $\iidDeltaLowBudget{}$~~$\iidDeltaLowBudgetCI{}$ & $\iidDeltaLowBudgetBA{}$~~$\iidDeltaLowBudgetBACI{}$ \\
+Date-disjoint & $\imageOnlyFoneDate{}$ & $\dateDeltaLowBudget{}$~~$\dateDeltaLowBudgetCI{}$ & $\dateDeltaLowBudgetBA{}$~~$\dateDeltaLowBudgetBACI{}$ \\
+\midrule
+\multicolumn{4}{l}{\emph{Change of macro-F1 from the reduced budget to the study's budget}} \\
+Image-only model & \multicolumn{3}{l}{$\imageOnlyBudgetChange{}$~~$\imageOnlyBudgetChangeCI{}$} \\
+Fusion model & \multicolumn{3}{l}{$\fusionBudgetChange{}$~~$\fusionBudgetChangeCI{}$} \\
+Image-only change minus fusion change & \multicolumn{3}{l}{$\budgetChangeDiff{}$~~$\budgetChangeDiffCI{}$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Margins of three pairs of AI Hub classifiers per crop, untuned forests.
+Values are means over \numSeeds{} random seeds, with 95\% confidence intervals of the
+difference paired within seed. An asterisk marks a margin whose paired $t$-test
+survives Holm's correction across the \timestampCrops{} crops.}
+\label{tab:margins}
+\input{generated/supp_margins.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{The margins of Table~\ref{tab:margins} with every forest
+tuned by the grid search of Table~\ref{tab:settings}.}
+\label{tab:tuned}
+\input{generated/supp_tuned.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Accuracy and balanced accuracy of the AI Hub predictors per crop, untuned
+forests. Values are means over \numSeeds{} random seeds.}
+\label{tab:scores}
+\input{generated/supp_scores.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{The soil-chemistry classifier's accuracy advantage over the majority-class predictor
+on the AI Hub dataset at three session minimums, averaged over the crops and the
+\numSeeds{} random seeds, over the scored rows with the sessions pooled and within
+single sessions, and the lowest and highest crop's within-session advantage.}
+\label{tab:floors}
+\input{generated/supp_floors.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\caption{Macro-F1 of the CDD forests on the study's split by the number of variables
+considered at each node of a tree, a share of the number of variables $p$, and at the share
+chosen per forest and seed on the study's validation partition. Values are means over
+\cddTheirSeeds{} random seeds of the forest with 95\% confidence intervals, paired
+within seed for the difference.}
+\label{tab:maxfeatures}
+\input{generated/supp_maxfeatures.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{The CDD predictors of the main text scored on the set of identifiers
+that the CDD study's repository ships beside the study's split and that the study's
+training script does not read. Each row is a random forest on the features that the row
+names, or the constant majority-class predictor. The split is fixed, so the
+\cddTheirSeeds{} random seeds behind each interval vary the forest alone. Values
+are given to four decimals, the precision of the study's reported figures. The
+paired difference is taken within seed.}
+\label{tab:other-set}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.30\textwidth}cc}
+\toprule
+ & Macro-F1 & Balanced accuracy \\
+\midrule
+Majority class & $\cddOtherBase{}$~~$\cddOtherBaseCI{}$ & $\cddOtherBaseBA{}$~~$\cddOtherBaseBACI{}$ \\
+Environment & $\cddOtherEnv{}$~~$\cddOtherEnvCI{}$ & $\cddOtherEnvBA{}$~~$\cddOtherEnvBACI{}$ \\
+Timestamp & $\cddOtherTimestamp{}$~~$\cddOtherTimestampCI{}$ & $\cddOtherTimestampBA{}$~~$\cddOtherTimestampBACI{}$ \\
+Timestamp and environment & $\cddOtherTimestampEnv{}$~~$\cddOtherTimestampEnvCI{}$ & $\cddOtherTimestampEnvBA{}$~~$\cddOtherTimestampEnvBACI{}$ \\
+\midrule
+Timestamp minus timestamp and environment & $\cddOtherTimestampOverTimestampEnv{}$~~$\cddOtherTimestampOverTimestampEnvCI{}$ & $\cddOtherTimestampOverTimestampEnvBA{}$~~$\cddOtherTimestampOverTimestampEnvBACI{}$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}

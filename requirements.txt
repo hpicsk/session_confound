@@ -1,0 +1,23 @@
+# requirements.txt — developed on Python 3.12 (3.12.13).
+#
+# Tier 1 — claim verification (reproduce.sh / test_assertions.py) and the
+# manuscript's figures (code/figures.py). Reads the committed imagery-free result
+# tables under code/; no dataset or GPU needed.
+pandas==3.0.3
+numpy==2.5.1
+scipy==1.18.0
+pyarrow==25.0.0
+matplotlib==3.11.0
+
+# Tier 2 — regenerating the result tables from raw imagery (dataset + CUDA GPU).
+# Not needed to verify the claims. torch/torchvision must match your CUDA
+# toolkit; the pins below record the versions used, not a portable constraint.
+scikit-learn==1.9.0
+joblib==1.5.3
+torch==2.13.0
+torchvision==0.28.0
+timm==1.0.28
+albumentations==2.0.8
+opencv-python-headless==5.0.0.93
+Pillow==12.3.0
+openpyxl==3.1.5

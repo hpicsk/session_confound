@@ -1,0 +1,353 @@
+% params.tex — single source of truth for every number in the manuscript body
+% (no hardcoded numbers in prose; semantic camelCase macros).
+%
+% The values are hand-authored, but not unchecked: every one of them is bound in
+% test_assertions.py to the committed, imagery-free artifact that measures it,
+% and asserted to be that value's correct rounding. The enumeration is exhaustive
+% and fails on a macro that has neither a binding nor an entry in
+% paper/params_exempt.md, so a number cannot enter the manuscript without a source
+% or a recorded reason for having none. The provenance comment on each block names the
+% source; when a result file is regenerated, update the value here in the same
+% commit and the binding will confirm it. A bare script or result-file name in a
+% block is in code/aihub_subtropical/ or code/dacon_cropdisease/, by the dataset
+% the block names; every other path is from the repository root.
+
+% ----------------------------------------------------------------------------
+% FRAME declarations. Every macro below belongs to exactly one population, named
+% by the `% FRAME:` line of its block or by a `[frame:...]` override on its own
+% line. test_assertions.py reads them, because the AI Hub dataset has four
+% populations (274,000 panel rows, 249,434 labelled images, 246,600 distributed
+% images, the 40,000-image fusion subsample).
+% `none` is for a number that is not a count over a population: a threshold, an
+% epoch budget, a seed count.
+% ----------------------------------------------------------------------------
+
+% ============================================================================
+% AI Hub dataset — structure (sec:corpora; MEASURED, corpus_structure.py)
+% FRAME: aihub-panel
+% ============================================================================
+\newcommand{\numImages}{274{,}000}          % metadata rows carrying a sensor panel
+\newcommand{\numCrops}{8}                    % subtropical/tropical crops
+\newcommand{\numClasses}{17}                 % realized disease/pest classes (of 22 documented)
+\newcommand{\numSingleCropClasses}{12}        % of \numClasses, the classes photographed on one crop only
+\newcommand{\numFarms}{24}                   % farms (22 single-crop)
+\newcommand{\numPanelTuples}{13{,}150}       % distinct panel tuples (all nine panel variables)
+\newcommand{\numTuplesOneSession}{13{,}144}  % of \numPanelTuples, the tuples that occur in one farm-day session only
+\newcommand{\photoWindow}{August--November 2023}
+\newcommand{\pctPhotoDayDiffers}{9.3}         % \% of rows photographed on another day than their panel was measured
+
+% ============================================================================
+% AI Hub dataset — granularity and implausible values (sec:res-diagnostic; corpus_structure.py)
+% FRAME: aihub-panel
+% ============================================================================
+\newcommand{\rsqFarmLo}{0.83}                % R^2(farm) low, pH/N/P/K
+\newcommand{\rsqFarmHi}{0.91}                % R^2(farm) high
+\newcommand{\pctPanelTupleShared}{99.5}      % \% of rows sharing their panel tuple with another row
+
+% ============================================================================
+% AI Hub dataset — timestamp baseline (sec:res-timestamp; timestamp_baseline_multiseed.py, 7 seeds)
+% FRAME: aihub-timestamp-crops
+%   The rows of the 7 compared crops that carry all five soil-chemistry
+%   variables. Not aihub-panel: the Hallabong mandarin (한라봉) ships no soil_K, so its rows leave every
+%   analysis that requires them (code/aihub_subtropical/README.md, Caveats).
+% ============================================================================
+\newcommand{\numSeeds}{7}                     % [frame:none] seed set 0--6
+\newcommand{\timestampCrops}{7}                   % crops in the comparison (of \numCrops; the
+                                              % eighth is removed by the panel filter named in
+                                              % the frame above, and also fails the >=2-class rule)
+\newcommand{\timestampHigherCrops}{5}           % crops where the timestamp classifier is more accurate
+                                              % than the panel classifier (paired t over seeds,
+                                              % Holm across the crops), in accuracy; the same
+                                              % count holds in balanced accuracy under the tuned
+                                              % forests (timestamp_vs_panel_tuned.csv)
+\newcommand{\timestampMarginSmallLo}{+0.012}   % smallest and largest timestamp margin, accuracy, over
+\newcommand{\timestampMarginSmallHi}{+0.017}   % the crops of that count other than fig and apple mango
+\newcommand{\figWinPlain}{+0.154}             % 무화과 (fig) timestamp margin, accuracy
+\newcommand{\mangoWinPlain}{+0.060}           % 애플망고 (apple mango) timestamp margin, accuracy
+\newcommand{\oliveLeanAbs}{0.020}            % 올리브 (olive): the panel classifier's accuracy lead over
+                                              % the timestamp classifier (minus the timestamp margin)
+\newcommand{\fullBeyondFarmCrops}{4}          % crops where the full-panel classifier is more accurate
+                                              % than the farm-and-timestamp classifier (Holm), in
+                                              % both metrics and under both forests
+\newcommand{\fullBeyondFarmLo}{0.009}         % smallest and largest of those leads, accuracy,
+\newcommand{\fullBeyondFarmHi}{0.077}         % untuned forests (lemon, apple mango)
+\newcommand{\panelAdvantagePooled}{0.251}     % panel advantage over the majority-class predictor,
+                                              % the within-session run's scored rows pooled
+                                              % (timestamp_baseline.py, mean over crops and seeds)
+\newcommand{\panelAdvantageWithinSession}{0.045} % same advantage within farm-day sessions; same seeds
+\newcommand{\residualLo}{0.027}              % smallest crop's within-session residual, mean over seeds
+\newcommand{\residualHi}{0.071}              % largest; every crop's interval lies above zero
+
+% ============================================================================
+% AI Hub dataset — fusion experiment (sec:fusion-design, sec:fusion; h4_*.csv;
+% late fusion, macro-F1)
+% FRAME: aihub-subsample
+%   The realized 40,000-image subsample, drawn from the imaged population
+%   (panel rows whose image is distributed: 246,600) — the population on which both
+%   models were trained and scored.
+% ============================================================================
+\newcommand{\fusionSeeds}{5}                  % [frame:none] seeds of every fusion run (the
+                                              % matched-budget in-distribution and date-disjoint runs pair
+                                              % on them). A numeral, because \numSeeds{} prints
+                                              % one in the same sentence
+\newcommand{\subsampleSize}{40{,}000}         % stratified image subsample
+\newcommand{\lowBudgetEpochs}{40}             % [frame:none] reduced-budget epochs
+\newcommand{\matchedEpochs}{300}              % [frame:none] matched-budget epochs (the CDD study's)
+\newcommand{\matchedBatch}{8}                 % [frame:none] matched-budget batch size
+\newcommand{\imageOnlyFone}{0.823}            % image-only macro-F1, reduced budget
+\newcommand{\imageOnlyFoneMatched}{0.809}     % image-only macro-F1, matched budget
+\newcommand{\imageOnlyFoneDate}{0.762}        % image-only macro-F1, date-disjoint, reduced budget
+\newcommand{\imageOnlyFoneDateMatched}{0.759} % image-only macro-F1, date-disjoint, matched budget
+\newcommand{\iidDeltaLowBudget}{+0.0013}      % in-distribution fusion gain at 40 epochs
+\newcommand{\iidDeltaLowBudgetCI}{[-0.0058,\,+0.0084]}
+\newcommand{\dateDeltaLowBudget}{+0.0082}     % date-disjoint fusion gain at 40 epochs (CI includes 0)
+\newcommand{\dateDeltaLowBudgetCI}{[-0.0091,\,+0.0255]}
+\newcommand{\iidDelta}{+0.0084}               % in-distribution fusion gain at matched budget (excludes 0)
+\newcommand{\iidDeltaPoints}{0.84}            % the same gain in percentage points of macro-F1
+\newcommand{\iidDeltaCI}{[+0.0028,\,+0.0140]}
+\newcommand{\imageOnlyBudgetChange}{-0.0141}  % image-only model, reduced to matched budget, paired within seed
+\newcommand{\fusionBudgetChange}{-0.0071}     % fusion model, same pairing; less than the image-only loss
+\newcommand{\imageOnlyBudgetChangeCI}{[-0.0219,\,-0.0063]}
+\newcommand{\fusionBudgetChangeCI}{[-0.0102,\,-0.0039]}
+\newcommand{\budgetChangeDiff}{-0.0071}       % image-only change minus fusion change, paired within seed
+\newcommand{\budgetChangeDiffCI}{[-0.0140,\,-0.0001]}
+\newcommand{\dateDelta}{+0.0037}              % date-disjoint fusion gain (CI includes 0)
+\newcommand{\dateDeltaCI}{[-0.0041,\,+0.0115]}
+\newcommand{\dateReduction}{+0.0046}          % paired reduction (in-distribution gain minus date-disjoint gain)
+\newcommand{\dateReductionCI}{[-0.0010,\,+0.0103]}
+% The same gains in balanced accuracy, beside macro-F1 in tab:fusion.
+\newcommand{\iidDeltaLowBudgetBA}{+0.0129}    % in-distribution fusion gain at 40 epochs, balanced accuracy
+\newcommand{\iidDeltaLowBudgetBACI}{[+0.0110,\,+0.0149]}
+\newcommand{\dateDeltaLowBudgetBA}{+0.0171}   % date-disjoint fusion gain at 40 epochs, balanced accuracy
+\newcommand{\dateDeltaLowBudgetBACI}{[+0.0038,\,+0.0303]}
+\newcommand{\iidDeltaBA}{+0.0073}             % in-distribution fusion gain, matched budget, balanced accuracy
+\newcommand{\iidDeltaBACI}{[+0.0002,\,+0.0145]}
+\newcommand{\dateDeltaBA}{+0.0121}            % date-disjoint fusion gain, matched budget, balanced accuracy
+\newcommand{\dateDeltaBACI}{[+0.0029,\,+0.0212]}
+\newcommand{\dateReductionBA}{-0.0048}        % paired reduction, balanced accuracy
+\newcommand{\dateReductionBACI}{[-0.0153,\,+0.0058]}
+\newcommand{\iidPanelLeak}{89.8}              % \% of in-distribution test panel tuples recurring in training
+\newcommand{\datePanelLeak}{7.3}              % same, date-disjoint split (same fold, same frame)
+
+% ============================================================================
+% AI Hub dataset — the candidate splits (sec:fusion-design; leakage_collapse_gate.csv)
+% FRAME: aihub-panel
+%   Measured on the whole metadata spreadsheet, not on the subsample on which the
+%   models above are scored: \iidPanelLeak and \datePanelLeak are the realized folds'
+%   leak rates and \candidateRandomLeak, \candidateDateLeak the candidate splits', and the two are
+%   different populations.
+% ============================================================================
+\newcommand{\candidateSplits}{4}                    % [frame:none] candidate splits compared
+\newcommand{\candidateFolds}{5}                   % [frame:none] folds of each candidate split
+\newcommand{\candidateRandomLeak}{99.3}           % \% of test images whose panel tuple recurs in training (leak rate), random
+\newcommand{\candidateDateLeak}{7.2}              % same, date-disjoint
+\newcommand{\candidateSessionLeak}{7.7}           % same, farm-day session-disjoint
+\newcommand{\farmUncoveredPct}{27.4}              % 100 minus \candidateFarmCoverage: farm-disjoint test
+                                             % images whose combination recurs in no training image
+\newcommand{\candidateFarmCoverage}{72.6}          % \% of farm-disjoint test images whose combination
+                                             % of crop, plant part and class recurs in training
+\newcommand{\candidateRandomCoverage}{100.0}      % same, random
+\newcommand{\candidateDateCoverage}{100.0}        % same, date-disjoint
+\newcommand{\candidateSessionCoverage}{100.0}     % same, farm-day session-disjoint
+\newcommand{\candidateFarmLeak}{0.0}              % leak rate, farm-disjoint
+
+% ============================================================================
+% CDD — granularity and photo dates (sec:res-diagnostic, sec:res-cdd;
+% dacon_series_ids.parquet, dacon_granularity.json)
+% FRAME: cdd
+% ============================================================================
+\newcommand{\cddImages}{5{,}767}            % labeled training samples
+\newcommand{\cddSeries}{780}                % distinct env series
+\newcommand{\cddSharedPct}{96.4}            % \% of images sharing a series
+\newcommand{\cddSingleDatePct}{98.6}        % \% of shared series spanning one photo date
+\newcommand{\cddSingleCodePct}{98.4}        % \% of shared series carrying a single disease
+\newcommand{\cddDates}{64}                  % distinct photo dates
+\newcommand{\cddSeriesPerDate}{12.2}        % series per photo date (\cddSeries/\cddDates):
+                                            % why holding out a series does not hold out its date
+
+% ============================================================================
+% CDD — leak rates of the study's split (sec:res-cdd; dacon_audited_split_leakage.csv)
+% FRAME: cdd-audited-split
+%   The CDD study's repository commits two sets of identifiers. Every macro in
+%   this block is measured on paper_work_seed777, the set that the repository's
+%   src/main.py reads for training, validation and test, except \cddSecondSplitLeak,
+%   \cddOtherLeakTrainval and \cddOtherDirectTest, which are the other set's.
+% ============================================================================
+\newcommand{\cddLeak}{91.9}                 % \% test images with env series in train
+\newcommand{\cddLeakTrainval}{96.4}         % \% vs train+val
+\newcommand{\cddGroupsShared}{406}          % test series that recur in training
+\newcommand{\cddGroupsTotal}{485}           % distinct test series
+\newcommand{\cddDirectTest}{31.5}           % \% test ids verbatim in train
+\newcommand{\cddDirectTrainval}{50.2}       % \% test ids verbatim in train+val
+
+% ============================================================================
+% CDD — the splits we draw (sec:res-cdd; dacon_published_split.csv)
+% FRAME: cdd
+% ============================================================================
+\newcommand{\cddSeeds}{7}                   % [frame:none] split seeds behind the two
+                                              % drawn splits (dacon_published_split.py SEEDS)
+\newcommand{\cddEnvRandom}{0.885}           % environment classifier macro-F1, random split
+\newcommand{\cddEnvRandomCI}{[0.873,\,0.896]}
+\newcommand{\cddEnvGroup}{0.653}            % environment classifier macro-F1, group-disjoint split
+\newcommand{\cddEnvGroupCI}{[0.587,\,0.720]}
+\newcommand{\cddTimestampRandom}{0.899}         % timestamp classifier macro-F1, random split
+\newcommand{\cddTimestampRandomCI}{[0.886,\,0.912]}
+\newcommand{\cddTimestampGroup}{0.595}          % timestamp classifier macro-F1, group-disjoint split
+\newcommand{\cddTimestampGroupCI}{[0.556,\,0.633]}
+\newcommand{\cddBaseRandom}{0.014}          % majority-class macro-F1, random split
+\newcommand{\cddBaseRandomCI}{[0.014,\,0.014]}
+\newcommand{\cddBaseGroup}{0.015}           % same, group-disjoint split
+\newcommand{\cddBaseGroupCI}{[0.015,\,0.016]}
+\newcommand{\cddTimestampEnvRandom}{0.914}      % timestamp+environment macro-F1, random split
+\newcommand{\cddTimestampEnvRandomCI}{[0.910,\,0.917]}
+\newcommand{\cddTimestampEnvGroup}{0.673}       % same, group-disjoint split
+\newcommand{\cddTimestampEnvGroupCI}{[0.591,\,0.754]}
+\newcommand{\cddTimestampOverEnvRandom}{+0.014} % timestamp minus environment, random split, paired
+                                            % within seed
+\newcommand{\cddTimestampOverEnvRandomCI}{[-0.003,\,+0.031]}
+\newcommand{\cddTimestampOverEnvGroup}{-0.059}  % same, group-disjoint split
+\newcommand{\cddTimestampOverEnvGroupCI}{[-0.119,\,+0.001]}
+\newcommand{\cddLeakRandom}{95.9}           % leak rate (\%), random split; a percentage,
+                                              % because the text states this quantity as one
+\newcommand{\cddLeakGroup}{0.0}             % same, group-disjoint split
+% Balanced accuracy of the same classifiers, beside macro-F1 in tab:cdd.
+\newcommand{\cddBaseRandomBA}{0.040}          % balanced accuracy, majority class, random split
+\newcommand{\cddBaseRandomBACI}{[0.040,\,0.040]}
+\newcommand{\cddEnvRandomBA}{0.884}           % balanced accuracy, environment, random split
+\newcommand{\cddEnvRandomBACI}{[0.872,\,0.896]}
+\newcommand{\cddTimestampRandomBA}{0.893}     % balanced accuracy, timestamp, random split
+\newcommand{\cddTimestampRandomBACI}{[0.879,\,0.907]}
+\newcommand{\cddTimestampEnvRandomBA}{0.910}  % balanced accuracy, timestamp and environment, random split
+\newcommand{\cddTimestampEnvRandomBACI}{[0.907,\,0.914]}
+\newcommand{\cddTimestampOverEnvRandomBA}{+0.009} % timestamp minus environment, balanced accuracy, random split, paired within seed
+\newcommand{\cddTimestampOverEnvRandomBACI}{[-0.009,\,+0.027]}
+\newcommand{\cddBaseGroupBA}{0.045}           % balanced accuracy, majority class, group split
+\newcommand{\cddBaseGroupBACI}{[0.043,\,0.046]}
+\newcommand{\cddEnvGroupBA}{0.695}            % balanced accuracy, environment, group split
+\newcommand{\cddEnvGroupBACI}{[0.638,\,0.752]}
+\newcommand{\cddTimestampGroupBA}{0.637}      % balanced accuracy, timestamp, group split
+\newcommand{\cddTimestampGroupBACI}{[0.591,\,0.682]}
+\newcommand{\cddTimestampEnvGroupBA}{0.720}   % balanced accuracy, timestamp and environment, group split
+\newcommand{\cddTimestampEnvGroupBACI}{[0.651,\,0.788]}
+\newcommand{\cddTimestampOverEnvGroupBA}{-0.058} % timestamp minus environment, balanced accuracy, group split, paired within seed
+\newcommand{\cddTimestampOverEnvGroupBACI}{[-0.102,\,-0.014]}
+% ============================================================================
+% CDD — the study's own split and the repository's other set
+% (sec:res-cdd; dacon_their_split.csv, paper_work_seed777 and, for \cddOther*, paper_work_seed42)
+% FRAME: cdd-audited-split
+%   The study's split is fixed, so the intervals below carry the forest's variance
+%   only, as the study's intervals carry only the variance that the random seed of
+%   its training introduces (sec:reanalysis).
+% ============================================================================
+\newcommand{\cddTheirSeeds}{7}              % [frame:none] forest seeds (dacon_their_split.py SEEDS)
+\newcommand{\cddTheirBase}{0.0135}           % majority-class macro-F1, the study's split
+\newcommand{\cddTheirBaseCI}{[0.0135,\,0.0135]}
+\newcommand{\cddTheirEnv}{0.8450}            % environment classifier macro-F1, the study's split
+\newcommand{\cddTheirEnvCI}{[0.8417,\,0.8484]}
+\newcommand{\cddTheirTimestamp}{0.9095}          % timestamp classifier macro-F1, the study's split
+\newcommand{\cddTheirTimestampCI}{[0.9035,\,0.9156]}
+\newcommand{\cddTheirTimestampEnv}{0.8851}       % timestamp+environment macro-F1, the study's split
+\newcommand{\cddTheirTimestampEnvCI}{[0.8821,\,0.8882]}
+\newcommand{\cddTheirTimestampOverTimestampEnv}{+0.0244}   % timestamp alone over timestamp+environment, the
+\newcommand{\cddTheirTimestampOverTimestampEnvCI}{[+0.0187,\,+0.0301]}  % study's split, paired within seed
+% The same predictors on the repository's other set, paper_work_seed42 (same file).
+\newcommand{\cddOtherBase}{0.0135}           % majority-class macro-F1, the other set
+\newcommand{\cddOtherBaseCI}{[0.0135,\,0.0135]}
+\newcommand{\cddOtherEnv}{0.8910}            % environment classifier macro-F1, the other set
+\newcommand{\cddOtherEnvCI}{[0.8889,\,0.8931]}
+\newcommand{\cddOtherTimestamp}{0.9450}          % timestamp classifier macro-F1, the other set
+\newcommand{\cddOtherTimestampCI}{[0.9418,\,0.9481]}
+\newcommand{\cddOtherTimestampEnv}{0.9421}       % timestamp+environment macro-F1, the other set
+\newcommand{\cddOtherTimestampEnvCI}{[0.9379,\,0.9464]}
+\newcommand{\cddOtherTimestampOverTimestampEnv}{+0.0028}   % timestamp alone over timestamp+environment,
+\newcommand{\cddOtherTimestampOverTimestampEnvCI}{[+0.0002,\,+0.0054]}  % the other set, paired within seed
+% Balanced accuracy of the same predictors on both sets, beside macro-F1 in tab:cdd-theirs.
+\newcommand{\cddTheirBaseBA}{0.0400}          % balanced accuracy, majority class, the study's split
+\newcommand{\cddTheirBaseBACI}{[0.0400,\,0.0400]}
+\newcommand{\cddTheirEnvBA}{0.8452}           % balanced accuracy, environment, the study's split
+\newcommand{\cddTheirEnvBACI}{[0.8430,\,0.8474]}
+\newcommand{\cddTheirTimestampBA}{0.8962}     % balanced accuracy, timestamp, the study's split
+\newcommand{\cddTheirTimestampBACI}{[0.8894,\,0.9031]}
+\newcommand{\cddTheirTimestampEnvBA}{0.8861}  % balanced accuracy, timestamp and environment, the study's split
+\newcommand{\cddTheirTimestampEnvBACI}{[0.8824,\,0.8897]}
+\newcommand{\cddTheirTimestampOverTimestampEnvBA}{+0.0102} % timestamp minus timestamp and environment, balanced accuracy, the study's split
+\newcommand{\cddTheirTimestampOverTimestampEnvBACI}{[+0.0033,\,+0.0171]}
+\newcommand{\cddOtherBaseBA}{0.0400}          % balanced accuracy, majority class, the other set
+\newcommand{\cddOtherBaseBACI}{[0.0400,\,0.0400]}
+\newcommand{\cddOtherEnvBA}{0.8925}           % balanced accuracy, environment, the other set
+\newcommand{\cddOtherEnvBACI}{[0.8906,\,0.8944]}
+\newcommand{\cddOtherTimestampBA}{0.9442}     % balanced accuracy, timestamp, the other set
+\newcommand{\cddOtherTimestampBACI}{[0.9411,\,0.9474]}
+\newcommand{\cddOtherTimestampEnvBA}{0.9411}  % balanced accuracy, timestamp and environment, the other set
+\newcommand{\cddOtherTimestampEnvBACI}{[0.9381,\,0.9440]}
+\newcommand{\cddOtherTimestampOverTimestampEnvBA}{+0.0031} % timestamp minus timestamp and environment, balanced accuracy, the other set
+\newcommand{\cddOtherTimestampOverTimestampEnvBACI}{[+0.0021,\,+0.0042]}
+
+% ============================================================================
+% CDD — label structure (sec:corpora; dacon_granularity.json)
+% FRAME: cdd
+% ============================================================================
+\newcommand{\cddCrops}{6}                   % greenhouse crops
+\newcommand{\cddClasses}{25}                % crop, disease and severity classes the study predicts
+\newcommand{\cddSingleDateClasses}{4}        % of \cddClasses, the classes photographed on a single date
+
+% ============================================================================
+% Protocol settings (tab:settings, sec:diagnostic, sec:reanalysis, sec:fusion-design).
+% Each is the constant of the script that ran with it, and test_assertions.py
+% reads it from that script.
+% FRAME: none
+% ============================================================================
+\newcommand{\forestTrees}{60}               % trees per random forest
+\newcommand{\holmAlpha}{0.05}             % significance level of the per-crop tests under Holm's
+                                            % correction (code/tables.py HOLM_ALPHA)
+\newcommand{\tunedTrees}{200}               % trees per tuned random forest (timestamp_baseline_tuned.py)
+\newcommand{\tunedLeafSizes}{1, 5, or 20}   % its grid of minimum leaf sizes
+\newcommand{\tunedInnerFolds}{3}            % folds of its inner cross-validation
+\newcommand{\cddGridFractions}{0.25, 0.5, or 1.0} % fractions of the CDD forests' max_features grid
+                                            % beside the square root (dacon_their_split_tuned.py)
+\newcommand{\timestampMinRows}{1{,}000}         % complete rows a crop needs to enter the timestamp-baseline comparison
+\newcommand{\timestampSampleRows}{20{,}000}     % rows drawn per crop and seed (timestamp_baseline_multiseed.py SAMPLE)
+\newcommand{\timestampFolds}{3}                 % stratified folds, timestamp baseline and within-session runs
+\newcommand{\sessionMinRows}{300}           % rows a session needs to enter the within-session run
+\newcommand{\sessionMinClassRows}{3}        % rows a class needs inside such a session
+\newcommand{\floorLow}{100}                % session minimums of the session-floor check
+\newcommand{\floorHigh}{1{,}000}           % (timestamp_baseline.py FLOOR_SWEEP)
+\newcommand{\cddFolds}{7}                   % folds of the drawn CDD splits; one is held out
+\newcommand{\fusionFolds}{5}                % folds of the fusion splits; one is held out
+\newcommand{\imagePixels}{256}              % image side after resizing, both models
+\newcommand{\lstmHidden}{200}               % hidden units of the study's environmental branch
+\newcommand{\learningRate}{0.001}           % Adam learning rate (the CDD study's)
+\newcommand{\restartEpochs}{25}             % epochs between warm restarts of the cosine schedule
+\newcommand{\lowBudgetBatch}{64}            % batch size at the reduced budget
+\newcommand{\earlyStopPatience}{5}          % epochs without validation gain before early stopping
+
+% ============================================================================
+% Software versions (sec:stats; requirements.txt)
+% FRAME: none
+% ============================================================================
+\newcommand{\pythonVersion}{3.12}
+\newcommand{\pandasVersion}{3.0.3}
+\newcommand{\sklearnVersion}{1.9.0}
+\newcommand{\torchVersion}{2.13.0}
+\newcommand{\timmVersion}{1.0.28}
+\newcommand{\albumentationsVersion}{2.0.8}
+
+% ============================================================================
+% The CDD study's reported values (sec:intro, sec:reanalysis, sec:res-cdd;
+% Applied Sciences 2024)
+% (the study's numbers, not ours)
+% FRAME: audited-study
+% ============================================================================
+\newcommand{\paperIncrement}{2.58}            % reported fusion increment, \%p macro-F1
+\newcommand{\paperImageFone}{0.8779}          % reported image-only macro-F1
+\newcommand{\paperMultiFone}{0.9037}          % reported image+environment macro-F1
+
+% ============================================================================
+% A value that another cited study reports (sec:intro; Plant Methods 2023)
+% (that study's number, not ours)
+% FRAME: cited-study
+% ============================================================================
+\newcommand{\leeYunAuroc}{0.917}           % Lee and Yun's average area under the ROC curve
+
+
+% ENDFRAME

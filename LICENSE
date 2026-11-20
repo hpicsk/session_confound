@@ -1,0 +1,72 @@
+Scope
+=====
+
+The MIT license below covers the source code in this repository: every Python
+script under `code/`, and the root-level `test_assertions.py`, `reproduce.sh`,
+and `requirements.txt`.
+
+It does not cover the following, and nothing in it should be read as granting
+rights over them.
+
+`code/aihub_subtropical/`: the result tables (`.csv` and `.json`)
+    They derive from the AI Hub dataset, 국내 재배 아열대·열대 병해충 데이터
+    (Domestically Cultivated Subtropical and Tropical Pest and Disease Data),
+    which AI Hub distributes only to applicants it approves. The AI Hub usage
+    policy (https://www.aihub.or.kr/intrcn/guid/usagepolicy.do) states that the
+    AI data on AI Hub were built under the Intelligent Information Industry
+    Infrastructure Development project of the Korean Ministry of Science and ICT
+    and the National Information Society Agency (NIA). Their use is governed by
+    that policy, not by this license. The policy requires every use of the data,
+    and every derivative work, to state that the data are a result of NIA's
+    project. It also requires a separate agreement with the institutions that
+    built the data and NIA before an organization or individual located outside
+    Korea uses the data, and before the data leave the country. The tables are
+    published here so that the results reported in the accompanying paper can
+    be checked.
+
+`code/dacon_cropdisease/`: the result tables (`.csv`), `dacon_series_ids.parquet`,
+and `dacon_granularity.json`
+    They derive from the Crop Disease Diagnosis (CDD) dataset, which LG AI
+    Research released through DACON's competition 235870
+    (https://dacon.io/competitions/official/235870/overview/rules). Two of the
+    tables also derive from the split files in the CDD study's repository
+    (https://github.com/hyunseoki/crop_disease), which declares no license.
+    Their use is governed by the competition's rules, not by this license. Those
+    rules allow access to and use of the competition data only for
+    non-commercial purposes, including academic research and education. They
+    also bind participants not to transmit, copy, publish, redistribute, or
+    provide the competition data to anyone who has not entered the competition.
+
+`code/survey/survey_records.csv`
+    The authors' coding of the fusion studies that the paper cites.
+    Copyright (c) 2026 Sungwoo Kang. All rights reserved. The data availability
+    statements that it quotes belong to the studies that published them.
+
+The rest of `paper/`, and the Markdown documents in this repository
+    The manuscript, its figures and parameter files, its bibliography, the
+    README files, and `SOURCES.md`.
+    Copyright (c) 2026 Sungwoo Kang. All rights reserved.
+
+
+MIT License
+===========
+
+Copyright (c) 2026 Sungwoo Kang
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

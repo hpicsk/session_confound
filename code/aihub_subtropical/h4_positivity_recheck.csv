@@ -1,0 +1,3 @@
+subsample_n,axis,n_test,n_train,panel_leak_fold0,cls_pos_fold0,cell_pos_fold0,farm_overlap_fold0,panel_leak_mean5,cls_pos_mean5,cell_pos_mean5,farm_overlap_mean5
+40000,iid,8000,32000,0.898375,1.0,1.0,1.0,0.9009750000000001,1.0,1.0,1.0
+40000,date,8005,31995,0.07345409119300438,1.0,1.0,1.0,0.07157557011790712,1.0,1.0,1.0

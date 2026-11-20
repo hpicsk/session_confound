@@ -1,0 +1,28 @@
+{
+  "images": 274000,
+  "crops": 8,
+  "disease_classes": 17,
+  "single_crop_disease_classes": 12,
+  "farms": 24,
+  "panel_tuples": 13150,
+  "panel_tuple_shared_pct": 99.5204,
+  "panel_tuples_one_session": 13144,
+  "photo_first": "2023-08-07",
+  "photo_last": "2023-11-29",
+  "photo_day_differs_pct": 9.3361,
+  "ph_impossible_pct": 15.9058,
+  "npk_zero_pct": 26.7888,
+  "r2_farm_min": 0.8313,
+  "r2_farm_max": 0.9136,
+  "r2_farm_panel": {
+    "temp": 0.5395,
+    "hum": 0.2511,
+    "soil_temp": 0.5623,
+    "soil_condition": 0.7471,
+    "soil_pH": 0.9136,
+    "soil_N": 0.8318,
+    "soil_P": 0.836,
+    "soil_K": 0.8313,
+    "ms_gec": 0.449
+  }
+}
