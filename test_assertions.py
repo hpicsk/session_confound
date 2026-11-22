@@ -226,6 +226,14 @@ def test_timestamp_within_session_advantage_collapses():
         f"Manuscript (sec:res-within) says that 'in each crop the within-session advantage "
         f"stays above zero', but the interval does not lie above zero in {under}"
     )
+    # sec:stats counts a crop only where its paired t-test survives Holm's correction across
+    # the crops, so "in each crop" is that count.
+    holm = _holm_crops(df.assign(zero=0.0), "advantage_within", "zero")["higher"]
+    assert holm == set(df["crop"]), (
+        f"Manuscript (sec:res-within) says that 'in each crop the within-session advantage "
+        f"stays above zero', a count that sec:stats takes after Holm's correction, but the "
+        f"advantage lies above zero after the correction only in {sorted(holm)}"
+    )
 
 
 def test_timestamp_seed_set_complete():
@@ -449,6 +457,12 @@ def test_the_within_session_sentences_across_session_minimums():
     by_floor = _floor_sweep()
     under = {(f, c) for f in (min(floors), max(floors))
              for c, r in by_floor[f].items() if r[1] <= 0}
+    # sec:stats counts a crop only where its paired t-test survives Holm's correction.
+    sweep["zero"] = 0.0
+    for f in (min(floors), max(floors)):
+        g = sweep[sweep["floor"] == f]
+        holm = _holm_crops(g, "within", "zero")["higher"]
+        under |= {(f, c) for c in set(g["crop"]) - holm}
     assert not under, (
         f"sec:res-within says that at session minimums of {min(floors)} and {max(floors):,} "
         f"rows 'the within-session advantage also stays above zero in every compared crop', "
@@ -681,9 +695,10 @@ def test_cdd_study_split_leaks():
 
 
 def test_the_leak_rate_is_the_same_under_the_raw_byte_hash():
-    # The Supplementary Material's leak table (tab:leak) prints every leak rate twice, with
-    # the series matched by their values (reading times dropped) and by their raw files, and
-    # the two rows agree. Held here, because a future build of the dataset that made the two
+    # sec:res-cdd: "the identical environment series also occurs in training, whether or not
+    # the reading times are dropped before the series are matched". The Supplementary
+    # Material's leak table (tab:leak) prints every leak rate twice, with the series matched
+    # by their values (reading times dropped) and by their raw files, and the two rows agree. Held here, because a future build of the dataset that made the two
     # keys diverge would leave the table's two rows printing different rates that the text
     # of the paper calls by one name, the leak rate.
     df, _ = _cdd_study_split_summary()
@@ -696,7 +711,9 @@ def test_the_leak_rate_is_the_same_under_the_raw_byte_hash():
         for col in ("breach", "breach_lab", "breach_trval", "direct", "direct_trval"):
             rates = {r.key: getattr(r, col) for r in g.itertuples()}
             assert math.isclose(rates["val_md5"], rates["csv_md5"], abs_tol=5e-4), (
-                f"tab:leak's rows for {tag} differ in {col}: {rates['val_md5']:.4f} under the "
+                f"sec:res-cdd says the series occur in training 'whether or not the reading times "
+                f"are dropped before the series are matched', but tab:leak's rows for {tag} "
+                f"differ in {col}: {rates['val_md5']:.4f} under the "
                 f"time-dropped hash and {rates['csv_md5']:.4f} under the raw-byte hash"
             )
 
@@ -1277,13 +1294,15 @@ def test_fusion_reduced_budget_coverage_conditions_hold():
 
 def test_fusion_reduced_budget_shows_no_in_distribution_gain():
     # sec:fusion-design: "Training first ran for a reduced budget of 40 epochs, which showed no
-    # gain of the fusion model over the image-only model on the in-distribution split". The paired 95% CI of the reduced-budget
-    # in-distribution gain must include zero (tab:fusion-reduced prints it).
+    # macro-F1 gain of the fusion model over the image-only model on the in-distribution split".
+    # The paired 95% CI of the reduced-budget in-distribution gain in macro-F1 must include zero
+    # (tab:fusion-reduced prints it). The sentence names macro-F1 because the balanced-accuracy
+    # gain at that budget excludes zero.
     _, summ = _fusion_reduced_summary()
     lo, hi = summ["iid"]["lo"], summ["iid"]["hi"]
     assert lo < 0.0 < hi, (
-        f"Manuscript (sec:fusion-design) says the reduced-budget training 'showed no gain "
-        f"of the fusion model over the image-only model on the in-distribution split' but the CI is [{lo:+.4f}, {hi:+.4f}], which excludes 0"
+        f"Manuscript (sec:fusion-design) says the reduced-budget training 'showed no macro-F1 "
+        f"gain of the fusion model over the image-only model on the in-distribution split' but the CI is [{lo:+.4f}, {hi:+.4f}], which excludes 0"
     )
 
 
@@ -1762,6 +1781,16 @@ def test_both_classifiers_exceed_the_majority_class_predictor():
         f"sec:res-timestamp says 'Both classifiers exceed the majority-class predictor in "
         f"every crop', but the paired interval reaches zero in {short}"
     )
+    # sec:stats counts a crop only where its paired t-test survives Holm's correction across
+    # the crops, so "every crop" is that count.
+    for clf, base in (("panel", "base"), ("timestamp", "base"),
+                      ("panel_bal", "base_bal"), ("timestamp_bal", "base_bal")):
+        higher = _holm_crops(df, clf, base)["higher"]
+        assert higher == set(df["crop"]), (
+            f"sec:res-timestamp says 'Both classifiers exceed the majority-class predictor in "
+            f"every crop', a count that sec:stats takes after Holm's correction, but {clf} "
+            f"exceeds {base} after the correction only in {sorted(higher)}"
+        )
 
 
 def test_holding_out_photo_dates_keeps_most_sessions_out_of_training():

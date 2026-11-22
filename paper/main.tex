@@ -60,7 +60,7 @@ may only identify the session.  On the AI Hub
 dataset, the timestamp predicted the class more accurately than the soil chemistry in
 most of the crops compared. However, in four of the seven crops compared, a classifier given the soil chemistry and every other
 sensor variable recorded with it was more accurate than a second comparator, one given
-the timestamp and the farm, which together identify the session. In the training and test split of a published CDD fusion study, \cddLeak{}\% of the test
+the timestamp and the farm, which together identify the session. On CDD, in a published fusion study's split, \cddLeak{}\% of the test
 images shared their series of greenhouse readings with a
 training image, \cddDirectTest{}\% were themselves training images, and the timestamp
 alone matched the classification score (macro-F1) that the study reports for its
@@ -98,7 +98,7 @@ that the fusion model detects diseases and pests more accurately than an image-o
 model \citep{jamun2025iot,partitioned2026,xu2025wheat}. This paper tests whether the
 readings of two released datasets that pair crop images with such readings identify the
 farm and the day of each image. The first is a dataset of subtropical and tropical crop pests and diseases on AI Hub, the
-Korean government's data portal, which attaches to each image one
+Korean government's data portal. The dataset attaches to each image one
 reading of a panel of nine soil and ambient sensor variables. Among its intended uses, the
 dataset lists predicting disease from the panel \citep{aihub2023subtropical}. Sensor readings alone are also reported to predict disease. On an AI Hub dataset that
 this paper does not test, a model given only environmental sensor readings predicted whether crops were infested, with an area
@@ -114,25 +114,26 @@ A sensor at a farm records a reading at intervals, so a dataset can attach one
 reading to every image taken at that farm before the next reading
 (Fig.~\ref{fig:concept}a). Each reading is recorded at one farm at one time, so a
 reading attached in this way identifies the session of the images that carry it, that
-is, the farm or greenhouse and the day. If disease classes differ between the
+is, the farm or greenhouse and the day, unless a reading of another session has identical
+values. If disease classes differ between the
 sessions of a dataset, a model can predict the class by identifying the session from
 the readings, even if the readings carry no agronomic information, that is, no
 information about the conditions in which the photographed crops grow. The readings are then a
 shortcut, which is a feature that predicts the label (the disease class) in the training
-data but not under new conditions \citep{geirhos2020shortcut,koh2021wilds}. A random split places
+data but not under new conditions \citep{geirhos2020shortcut,koh2021wilds}. A random split, however, places
 images of one session in both the training and the test data, so a model can learn
 which class goes with the readings of each session and recognize the same readings at
 test time. A fusion gain measured on a random split therefore cannot separate a
-contribution of agronomic information from session identity. A gain that comes from
-session identity is lost on a farm or a day that the training data do not hold, which
-is where a disease detector is used.
+contribution of agronomic information from session identity. The two sources of a gain
+differ in use, because a gain that comes from session identity is lost on a farm or a
+day that the training data do not hold, which is where a disease detector is used.
 
 A session-disjoint split prevents this shortcut, because it keeps all images of a
 session in either the training or the test data. The Global Wheat Head Detection benchmark, for example, assigns the images of
 each of its acquisition sessions, which correspond to the sessions of this paper, to
 only one of its training, validation, and test sets \citep{gwhd2021}. For
 data with spatial, temporal, or hierarchical structure,
-\citet{roberts2017crossvalidation} recommend cross-validation that holds out whole
+\citet{roberts2017crossvalidation} likewise recommend cross-validation that holds out whole
 blocks of related observations. Session identity is easy to miss in sensor readings,
 however, because a sensor reading is a physical measurement and so appears to carry
 agronomic information. None of the fusion studies that we cite reports either of two
@@ -150,7 +151,7 @@ not sessions, together.
 
 We supply a diagnostic that tests whether a dataset's sensor readings identify the
 session. The diagnostic reads a dataset's sensor readings and the metadata that the
-dataset records for each image, but no image. Unlike the second check, the diagnostic
+dataset records for each image, such as the date and time of its photograph, but no image. Unlike the second check, the diagnostic
 needs no trained fusion model, so it can run before any fusion model is trained. The
 diagnostic has two parts (Fig.~\ref{fig:concept}b). A granularity probe measures how
 many images share each sensor reading, how many sessions each reading occurs in, and, on the AI Hub dataset, the share of each panel variable's variance that farm identity
@@ -161,7 +162,7 @@ a timestamp may therefore do nothing more than identify the session. A partial-i
 classifier given only part of its input \citep{feng2019misleading}. Such baselines
 showed that text datasets for judging whether one sentence follows from another let a
 classifier predict the label from one of the two sentences alone
-\citep{gururangan2018artifacts,poliak2018hypothesis}. Where a
+\citep{gururangan2018artifacts,poliak2018hypothesis}. Whereas a
 partial-input baseline keeps part of a model's input, the timestamp baseline replaces
 the sensor readings with the timestamp.
 
@@ -185,8 +186,9 @@ train the CDD study's fusion model on the AI Hub dataset on a split that holds o
 whole photo dates. Most images of the AI Hub dataset were photographed on the day on
 which their panel was measured, so such a split keeps the session of most test images
 out of training. Such a split also keeps every class in both the training and the test data, so the
-model is scored only on classes that it saw in training, whereas no split of CDD by photo
-date does so, because some CDD classes were photographed on a single date. This paper has seven objectives: (1) to count, in both datasets, the images that share each
+model is scored only on classes that it saw in training. We draw the split on the AI Hub
+dataset rather than on CDD, because some CDD classes were photographed on a single date,
+so no split of CDD by photo date keeps every class in both. This paper has seven objectives: (1) to count, in both datasets, the images that share each
 sensor reading; (2) to compare, on the AI Hub dataset, a classifier given only the
 timestamp with one given the soil-chemistry readings; (3) to compare, on the same dataset, a classifier given the farm and the timestamp, which together identify the session, with one given every
 recorded sensor variable; (4) to measure, within single sessions of the AI Hub dataset, the readings'
@@ -235,10 +237,10 @@ one of \cddClasses{} classes. The images of
 \cddSingleDateClasses{} of these classes were all photographed on a single date, so no
 split by photo date keeps every class of CDD in both the training and the test data.
 
-In both datasets, we leave the sensor values as they stand in the files, including the
+In both datasets, we leave the recorded sensor values as they stand in the files, including the
 AI Hub dataset's pH values outside the pH scale and its nitrogen, phosphorus, and
 potassium values of exactly zero, because those are the values that a model trained on
-either dataset receives.
+either dataset reads from the files.
 
 \subsection{Granularity probe}
 \label{sec:diagnostic}
@@ -271,11 +273,12 @@ and the severity).
 
 The timestamp baseline compares random forests \citep{breiman2001random} from the
 scikit-learn library \citep{pedregosa2011scikit} that read the sensor readings with
-forests that read a timestamp, and sets beside them forests that read a timestamp
-together with the farm or with the readings (Table~\ref{S-tab:settings} in the
-supplementary data). On the AI Hub dataset, each forest was trained and
+forests that read a timestamp (Table~\ref{S-tab:settings} in the supplementary data). Beside
+these two kinds of forest, the baseline sets forests that read a timestamp together with
+the farm on the AI Hub dataset or together with the readings on CDD. On the AI Hub dataset, each forest was trained and
 scored within a crop, because \numSingleCropClasses{} of the \numClasses{} pest and
-disease classes occur on one crop only and could be predicted from the crop. A crop
+disease classes occur on one crop only, and a forest trained across crops could predict
+them from any input that differs between crops. A crop
 enters the comparison if at least \timestampMinRows{} of its rows carry all five
 soil-chemistry variables (pH, N, P, K, and electrical conductivity) and those rows span
 at least two classes, which excludes only the Hallabong mandarin, for which the dataset records no potassium value. The soil-chemistry classifier reads the five soil-chemistry
@@ -287,8 +290,8 @@ as well.  The timestamp
 classifier reads the day and the time of day at which a row's panel was measured, and
 the farm-and-timestamp classifier reads the same two values and the farm, which
 together identify the session. Comparing the full-panel classifier with the
-timestamp classifier shows whether the variables beyond soil chemistry change the result
-of the soil-chemistry classifier's comparison with the timestamp classifier. A full-panel classifier that is more accurate than the farm-and-timestamp
+timestamp classifier shows whether adding the variables beyond soil chemistry changes
+how the readings compare with the timestamp. A full-panel classifier that is more accurate than the farm-and-timestamp
 classifier predicts more than the session alone would.
 
 Each of the \timestampCrops{} compared crops has more than \timestampSampleRows{} rows
@@ -296,15 +299,17 @@ that carry all five soil-chemistry variables. To bound the computation, we drew
 \timestampSampleRows{} of those rows at random in each crop and scored the four
 classifiers on them by stratified \timestampFolds{}-fold cross-validation. Like a random split, this
 cross-validation can place rows of one session in both the training and the test folds,
-so a timestamp can predict the class by identifying the session. We repeated the
+so a timestamp can predict the class by identifying the session's day. We repeated the
 draw and the cross-validation for each of \numSeeds{} random seeds. Every classifier
 used the same rows, folds, and seed. A majority-class predictor, which always predicts
-the most frequent class of the training folds, was scored on the same folds. We scored accuracy and balanced accuracy, the mean over classes of the share of each
+the most frequent class of the training folds, was scored on the same folds to give the
+score that the class frequencies alone reach. We scored accuracy and balanced accuracy, the mean over classes of the share of each
 class's rows that the classifier assigns to that class. Comparing the two scores shows
 whether a comparison depends on the sizes of the classes. A classifier's margin over another is
 its accuracy or balanced accuracy minus the other's. We then repeated the
 comparison with every forest tuned in an inner cross-validation within each set of
-training folds, using the same grid search for every classifier (Table~\ref{S-tab:settings}).
+training folds, using one grid search for every classifier (Table~\ref{S-tab:settings}),
+to show whether the comparison depends on the forests' settings.
 
 If the soil-chemistry readings only identify the session, they should predict little
 once the session is fixed. We therefore scored the soil-chemistry classifier, under each of the \numSeeds{} seeds, by
@@ -315,20 +320,23 @@ margin in accuracy over the majority-class predictor. We averaged the advantage 
 sessions, weighting each session by its number of scored rows, and then over the crops
 and the seeds.
 
-On CDD, we drew two splits over \cddSeeds{} random seeds each. Under each seed, the
+On CDD, we drew a random split and a split grouped by environment series, each over
+\cddSeeds{} random seeds. Under each seed, the
 images are divided into \cddFolds{} folds, and one fold is held out for testing. The folds are stratified by class alone
 (the random split) or also grouped by environment series, so that each series falls in
 exactly one fold (the group-disjoint split, which approximates a session-disjoint
-split). On CDD, untuned random forests like those
+split). A score that falls from the random to the group-disjoint split depends in part
+on series that training and test images share. On CDD, untuned random forests like those
 of the AI Hub comparison predict the \cddClasses{}-class label. The environment
 classifier reads the environment features, which are the mean, minimum, maximum, and
-first and last non-missing values of each column of the environment series. The timestamp
+first and last non-missing values of each column of the environment series except the
+column of reading times. The timestamp
 classifier reads the day and the time of
 day of the photograph, which is the timestamp that CDD's annotation records, whereas
 on the AI Hub dataset it is the time of the panel's measurement. The
 timestamp-and-environment classifier reads both the timestamp and the environment
-features, so it shows whether the environment features add to the timestamp. A majority-class predictor is scored
-on the same test images.
+features, so it shows whether the environment features add to the timestamp. As on the
+AI Hub dataset, a majority-class predictor is scored on the same test images.
 
 \subsection{Re-analysis of a published fusion study on CDD}
 \label{sec:reanalysis}
@@ -342,13 +350,13 @@ without its multimodal mixup augmentation, which adds training examples that ble
 pairs of examples linearly in image and series. Our training of the study's fusion
 model on the AI Hub dataset also leaves that augmentation out. The study states a ratio of training,
 validation, and test images but not how it drew its split, so we took the split from
-the study's public repository \citep{cropdiseaserepo}. The repository holds two sets of identifiers, each with a training, a validation, and a test partition. The study's
+the study's public repository \citep{cropdiseaserepo}. The repository holds two sets of image identifiers, each with a training, a validation, and a test partition. The study's
 split is the set that the study's training script reads. We matched the identifiers
 to the environment series, computed the share of test images whose series also occurs
 in training (the leak rate), and counted the test identifiers that appear verbatim in
-training. Table~\ref{S-tab:leak} gives the leak rates with series matched by their
-raw files, reading times included, and the leak rates of the repository's other set of
-identifiers.
+training. Matching the series by their raw files, reading times included, tests whether
+dropping the reading times changes the leak rate (Table~\ref{S-tab:leak}). Table~\ref{S-tab:leak}
+also gives the leak rates of the repository's other set of identifiers.
 
 We then ran the forests of the CDD timestamp baseline on the study's split, with its
 identifiers unchanged, so that their macro-F1 and the study's are measured over the
@@ -393,10 +401,10 @@ study's training procedure for its \matchedEpochs{} epochs (Table~\ref{S-tab:set
 the best validation macro-F1, and its random transformations of the training images.
 We trained each model with \fusionSeeds{} random seeds,
 a number that bounds the training cost. Training first ran for a reduced budget of
-\lowBudgetEpochs{} epochs, which showed no gain of the fusion model over the
-image-only model on the in-distribution split (Table~\ref{S-tab:fusion-reduced}), and
-then for the study's number of epochs. The in-distribution gain that we report
-therefore comes from training runs that we added after a null result.
+\lowBudgetEpochs{} epochs, which showed no macro-F1 gain of the fusion model over the
+image-only model on the in-distribution split (Table~\ref{S-tab:fusion-reduced}). We
+then added training runs at the study's number of epochs, so the in-distribution gain
+that we report comes from runs that we added after a null result.
 
 The image-only and fusion models share the ResNet-50, the training procedure, and the
 random seeds, so
@@ -406,7 +414,8 @@ they differ only in the panel and in the layers that read it. The fusion gain
 \label{eq:gain}
 \end{equation}
 is therefore what the panel contributes to macro-F1 through those layers, taken
-within a seed. The in-distribution gain and the date-disjoint gain are $\delta$ on the
+within a seed. We also report $\delta$ in balanced accuracy, the same difference computed
+from balanced accuracy. The in-distribution gain and the date-disjoint gain are $\delta$ on the
 two splits. The loss of the gain on held-out dates, the paired reduction, is the
 in-distribution gain minus the date-disjoint gain, also taken within a seed, because a
 seed sets the same initial weights for the runs on both splits.
@@ -512,10 +521,11 @@ and passion fruit, where the full-panel and farm-and-timestamp classifiers do no
 farm-and-timestamp classifier is the more accurate. In
 the other \fullBeyondFarmCrops{} crops, lemon, fig, apple mango, and olive, the
 full-panel classifier stays more accurate than the farm-and-timestamp classifier in
-both metrics and with the forests untuned or tuned, by \fullBeyondFarmLo{} in lemon to
-\fullBeyondFarmHi{} in apple mango in accuracy (Fig.~\ref{fig:timestamp}). One of these crops,
-fig, has all its images from a single farm, so in fig this comparison adds nothing to the
-comparison with the timestamp classifier.
+both metrics and with the forests untuned or tuned. One of these crops, fig, has all its
+images from a single farm, so in fig this comparison adds nothing to the comparison with
+the timestamp classifier. With untuned forests, the full-panel classifier's accuracy
+margin over the farm-and-timestamp classifier runs from \fullBeyondFarmLo{} in lemon to
+\fullBeyondFarmHi{} in apple mango (Fig.~\ref{fig:timestamp}).
 
 \subsection{The readings lose part of their advantage within a session or on held-out
 series}
@@ -589,7 +599,8 @@ identifiers,
 \cddDirectTrainval{}\% in its training and validation partitions together, so the
 study scores its models partly on images that they were trained on. For
 \cddLeak{}\% of its test images, the identical environment series also occurs in
-training. Of the \cddGroupsTotal{} distinct test series, \cddGroupsShared{} recur in
+training, whether or not the reading times are dropped before the series are matched
+(Table~\ref{S-tab:leak}). Of the \cddGroupsTotal{} distinct test series, \cddGroupsShared{} recur in
 training, so the shared series are most of the test series, not a few series that
 hold many test images. Our forests train on the training and validation partitions together, so the rate
 relevant to them is the share of test images whose series occurs in either partition,
@@ -724,13 +735,13 @@ training runs per model.
 
 \subsection{What the re-analysis of a published fusion gain can show}
 
-On the published CDD split, a timestamp alone matches the macro-F1 that the CDD study
-\citep{appliedsci2024dacon} reports for its fusion model, so nothing in the macro-F1
-scores and intervals that the study publishes separates session identity from agronomic information in
-the environment series. The CDD study reports confidence intervals from runs that vary
-only the random seed of training on fixed split files \citep{appliedsci2024dacon}. A
+On the CDD study's split, a timestamp alone matches the macro-F1 that the CDD study
+\citep{appliedsci2024dacon} reports for its fusion model, so nothing in the study's macro-F1
+scores separates session identity from agronomic information in the environment series.
+The study also reports confidence intervals, from runs that vary only the random seed
+of training on fixed split files \citep{appliedsci2024dacon}. A
 leak raises the score but not the spread of the scores across runs, so a reader cannot
-detect the leak from those intervals. A re-analysis can expose such a leak only where a study releases
+detect the leak from those intervals either. A re-analysis can expose such a leak only where a study releases
 both its dataset and its split, so our re-analysis covers one published gain.
 
 \subsection{Recommendations for fusion studies and dataset releases}

@@ -15,7 +15,7 @@ panel tuple that recurs in training, h4_positivity_recheck.csv).
 
 The printed outcome is the same as at the reduced budget: whether the in-distribution delta's
 CI excludes 0. The manuscript reports the gain and its interval (sec:fusion), and that this
-training was added after the reduced-budget run showed no gain (sec:fusion-design). The reduced-budget table h4_fusion_collapse.csv is NOT
+training was added after the reduced-budget run showed no macro-F1 gain (sec:fusion-design). The reduced-budget table h4_fusion_collapse.csv is NOT
 touched; this script writes h4_fusion_matched_budget.csv.
 
 ORDER OF THE RUNS:
